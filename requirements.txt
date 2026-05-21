@@ -1,0 +1,6 @@
+streamlit
+edge-tts
+pypdf
+python-docx
+paddleocr
+paddlepaddle
