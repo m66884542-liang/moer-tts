@@ -128,9 +128,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-streamlit
-edge-tts
-pypdf
-python-docx
-paddleocr
-paddlepaddle
+
