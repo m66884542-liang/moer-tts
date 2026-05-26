@@ -60,11 +60,11 @@ async def amain(text, voice, rate, output_filename) -> None:
 
 # --- 4. 主界面逻辑与高级 UI 注入 ---
 def main():
-    # 必须首先执行页面配置
+    # 严格将配置作为首行执行
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 针对 Python 3.14 优化后的安全 CSS 样式 (移除了可能引发格式化冲突的百分比符号)
-    custom_css = """
+    # 针对 Python 3.14 优化后的安全 CSS 样式 (使用官方推荐的 st.html 接口，避免语法误判)
+    custom_style = """
     <style>
         /* 致敬 Type Words 的清爽极简底色 */
         .stApp {
@@ -72,10 +72,10 @@ def main():
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         
-        /* 隐藏无用页眉页脚 */
+        /* 隐藏Streamlit官方页眉与页脚以提升高级感 */
         header, footer {visibility: hidden;}
         
-        /* 扁平化极简大标题与副标题 */
+        /* 扁平化极简大标题与副标题设计 */
         .brand-title {
             font-size: 3.2rem;
             font-weight: 800;
@@ -92,7 +92,7 @@ def main():
             margin-bottom: 2.5rem;
         }
         
-        /* 极具呼吸感的纯白圆角卡片化设计 */
+        /* 具有呼吸感的纯白圆角卡片化设计 */
         .stTextArea textarea, .stFileUploader, div[data-testid="stForm"], .stTabs {
             background-color: #FFFFFF !important;
             border-radius: 16px !important;
@@ -127,17 +127,17 @@ def main():
         }
     </style>
     """
-    # 采用安全模式渲染 CSS 样式
-    st.markdown(custom_css, unsafe_html=True)
+    # 改用极速安全的官方专属原生 HTML 解析器，彻底根除报错
+    st.html(custom_style)
 
     # 显示品牌标识与中性化严谨副标题
     st.markdown('<div class="brand-title">EchoMind</div>', unsafe_html=True)
     st.markdown('<div class="brand-subtitle">面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具</div>', unsafe_html=True)
 
     # 侧边栏：参数科学配置
-    st.sidebar.markdown("### 🎛️ 语音与时间管理")
+    st.sidebar.markdown("### 🎛️ 语音与时间 management")
     
-    # 严谨划分声线场景，不带具体地域标签
+    # 严格划分声线场景
     voice_options = {
         "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
         "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
@@ -205,14 +205,13 @@ def main():
                 for i in range(loop_count):
                     final_text += f"第{i+1}遍。 {input_text} \n\n "
             else:
-                # 按照1分钟约280字粗略估算
                 estimated_words_needed = duration_min * 280
                 current_words = len(input_text)
                 repeats = max(1, estimated_words_needed // current_words)
                 for i in range(repeats):
                     final_text += f"第{i+1}轮循环。 {input_text} \n\n "
 
-            # 智能挖空逻辑接入
+            # 智能挖空逻辑
             quiz_data = []
             if enable_quiz:
                 quiz_data = generate_quiz_questions(input_text)
@@ -233,8 +232,6 @@ def main():
             st.session_state['enable_quiz'] = enable_quiz
 
         st.success("🎉 复述系统编译完成！")
-        
-        # 优化音频组件展现形式
         st.audio(output_filename, format="audio/mpeg")
         st.download_button(label="📥 导出独立音频文件 (MP3)", data=open(output_filename, "rb").read(), file_name="EchoMind_Audio.mp3")
 
