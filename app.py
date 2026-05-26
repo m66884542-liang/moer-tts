@@ -26,7 +26,6 @@ def extract_text_from_file(uploaded_file):
 def generate_quiz_questions(text):
     if len(text) < 15:
         return []
-    # 🎯 严格修复上一版此处多写了 ' 导致的编译及运行逻辑崩溃漏洞
     sentences = [s.strip() for s in text.replace("；", "。").replace("\n", "。").split("。") if len(s.strip()) > 10]
     if not sentences:
         return []
@@ -59,89 +58,21 @@ async def amain(text, voice, rate, output_filename) -> None:
     communicate = edge_tts.Communicate(text, voice, rate=rate)
     await communicate.save(output_filename)
 
-# --- 4. 主界面逻辑与高级 UI 注入 ---
+# --- 4. 主界面逻辑（完全还原原生 UI） ---
 def main():
-    # 严格作为首行执行页面配置
+    # 首行页面基础配置
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 精致化 UI 样式（无3条杠手柄，无缝平滑卡片边框）
-    ui_and_header_html = """
-    <style>
-        /* Type Words 高雅冷调浅色背景 */
-        .stApp {
-            background-color: #F3F6FA !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-        
-        /* 极简现代化大标题与副标题 */
-        .brand-title {
-            font-size: 3.2rem;
-            font-weight: 800;
-            color: #4A148C;
-            text-align: center;
-            margin-top: 1.5rem;
-            margin-bottom: 0.2rem;
-            letter-spacing: -0.06rem;
-        }
-        .brand-subtitle {
-            font-size: 1.05rem;
-            color: #5C6BC0;
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-        
-        /* 纯白质感圆角卡片组件与细腻边框精调 */
-        .stTextArea textarea, .stFileUploader, div[data-testid="stForm"], .stTabs {
-            background-color: #FFFFFF !important;
-            border-radius: 16px !important;
-            border: 1px solid #E2E8F0 !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
-        }
-        
-        /* 彻底隐藏多行输入框右下角引起不适的 “3条杠” 拖拽手柄 */
-        .stTextArea textarea {
-            resize: none !important;
-        }
-        
-        /* 侧边栏高级灰 */
-        section[data-testid="stSidebar"] {
-            background-color: #F8FAFC !important;
-            border-right: 1px solid #E2E8F0;
-        }
-        
-        /* 全宽质感主按钮 */
-        .stButton>button {
-            background-color: #3A86FF !important;
-            color: white !important;
-            border: none !important;
-            padding: 0.7rem 2rem !important;
-            border-radius: 12px !important;
-            font-weight: 600 !important;
-            font-size: 1rem !important;
-            box-shadow: 0 4px 12px rgba(58, 134, 255, 0.2) !important;
-            transition: all 0.2s ease !important;
-            width: 100%;
-            margin-top: 1rem;
-        }
-        .stButton>button:hover {
-            background-color: #2563EB !important;
-            transform: translateY(-1px) !important;
-        }
-    </style>
-    
-    <div class="brand-title">EchoMind</div>
-    <div class="brand-subtitle">面向深度记忆、学术背诵与文本复述的科学自测工具</div>
-    """
-    
-    # 安全注入纯静态样式与标题
-    st.html(ui_and_header_html)
+    # 100% 还原官方原生标题组件，去除所有外部 CSS 渲染干扰
+    st.title("🧠 EchoMind")
+    st.caption("面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具")
 
-    # ================= ⚡ 侧边栏极限收纳整理区域 ⚡ =================
-    st.sidebar.markdown("### ⚙️ 控制中心")
+    # ================= ⚙️ 侧边栏功能极致收纳 =================
+    st.sidebar.title("⚙️ 控制中心")
     
-    # 核心：将所有零散功能全部塞进一个“高级参数配置”折叠箱中
+    # 将零散配置完美收纳进单个折叠模块，保持侧边栏原生清爽
     with st.sidebar.expander("🛠️ 展开/收起 高级参数配置", expanded=False):
-        st.markdown("#### 🔊 语音特质调校")
+        st.subheader("🔊 语音特质调校")
         voice_options = {
             "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
             "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
@@ -159,7 +90,7 @@ def main():
         speed_str = f"+{speed}%" if speed >= 0 else f"{speed}%"
 
         st.write("---")
-        st.markdown("#### ⏳ 循环记忆机制")
+        st.subheader("⏳ 循环记忆机制")
         loop_mode = st.radio("配置复述机制", ["定量（按遍数循环）", "定长（按时长磨耳朵）"])
         loop_count = 1
         duration_min = 0
@@ -172,7 +103,7 @@ def main():
             duration_min = time_options[selected_time]
 
         st.write("---")
-        st.markdown("#### ❓ 记忆输出抽查")
+        st.subheader("❓ 记忆输出抽查")
         enable_quiz = st.checkbox("开启复述后的效果抽查", value=True)
         
         quiz_mode = "交互式电子答题"
@@ -182,7 +113,7 @@ def main():
             if quiz_mode == "🔊 语音播报问题":
                 wait_time = st.slider("留给脑海中思索答案的时间 (秒)", min_value=5, max_value=15, value=10, step=5)
 
-    # 主界面输入区域卡片
+    # 主界面输入区域
     tab1, tab2 = st.tabs(["📝 纯文本录入", "📂 本地文档解析 (PDF/Word/TXT)"])
     input_text = ""
 
@@ -196,7 +127,7 @@ def main():
                 input_text = extract_text_from_file(uploaded_file)
             st.success("文档内容解析成功！")
 
-    # 执行合成
+    # 执行生成
     if st.button("🚀 编译并生成复述记忆系统"):
         if not input_text.strip():
             st.warning("⚠️ 请先录入需要复述的文本内容！")
