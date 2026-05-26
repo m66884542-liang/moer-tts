@@ -26,6 +26,7 @@ def extract_text_from_file(uploaded_file):
 def generate_quiz_questions(text):
     if len(text) < 15:
         return []
+    # 🎯 严格修复上一版此处多写了 ' 导致的编译及运行逻辑崩溃漏洞
     sentences = [s.strip() for s in text.replace("；", "。").replace("\n", "。").split("。") if len(s.strip()) > 10]
     if not sentences:
         return []
@@ -63,7 +64,7 @@ def main():
     # 严格作为首行执行页面配置
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 修复白屏隐患的高级 UI 样式
+    # 精致化 UI 样式（无3条杠手柄，无缝平滑卡片边框）
     ui_and_header_html = """
     <style>
         /* Type Words 高雅冷调浅色背景 */
@@ -89,12 +90,17 @@ def main():
             margin-bottom: 2.5rem;
         }
         
-        /* 纯白质感圆角卡片组件 */
+        /* 纯白质感圆角卡片组件与细腻边框精调 */
         .stTextArea textarea, .stFileUploader, div[data-testid="stForm"], .stTabs {
             background-color: #FFFFFF !important;
             border-radius: 16px !important;
             border: 1px solid #E2E8F0 !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
+        }
+        
+        /* 彻底隐藏多行输入框右下角引起不适的 “3条杠” 拖拽手柄 */
+        .stTextArea textarea {
+            resize: none !important;
         }
         
         /* 侧边栏高级灰 */
@@ -130,48 +136,51 @@ def main():
     # 安全注入纯静态样式与标题
     st.html(ui_and_header_html)
 
-    # 侧边栏：参数配置
-    st.sidebar.markdown("### 🎛️ 语音与时间管理")
+    # ================= ⚡ 侧边栏极限收纳整理区域 ⚡ =================
+    st.sidebar.markdown("### ⚙️ 控制中心")
     
-    voice_options = {
-        "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
-        "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
-        "纪录片风 · 浑厚男声 (云扬)": "zh-CN-YunyangNeural",
-        "自然流畅 · 日常女声 (晓北)": "zh-LN-XiaobeiNeural",
-        "温润和缓 · 宣讲女声 (晓伊)": "zh-CN-XiaoyiNeural",
-        "电台质感 · 抒情女声 (晓辰)": "zh-CN-XiaochenNeural",
-        "清爽开朗 · 青年男声 (云夏)": "zh-CN-YunxiaNeural",
-        "饱满宏亮 · 演讲男声 (云健)": "zh-CN-YunjianNeural"
-    }
-    selected_voice_label = st.sidebar.selectbox("选择复述声线特质", list(voice_options.keys()))
-    voice = voice_options[selected_voice_label]
+    # 核心：将所有零散功能全部塞进一个“高级参数配置”折叠箱中
+    with st.sidebar.expander("🛠️ 展开/收起 高级参数配置", expanded=False):
+        st.markdown("#### 🔊 语音特质调校")
+        voice_options = {
+            "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
+            "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
+            "纪录片风 · 浑厚男声 (云扬)": "zh-CN-YunyangNeural",
+            "自然流畅 · 日常女声 (晓北)": "zh-LN-XiaobeiNeural",
+            "温润和缓 · 宣讲女声 (晓伊)": "zh-CN-XiaoyiNeural",
+            "电台质感 · 抒情女声 (晓辰)": "zh-CN-XiaochenNeural",
+            "清爽开朗 · 青年男声 (云夏)": "zh-CN-YunxiaNeural",
+            "饱满宏亮 · 演讲男声 (云健)": "zh-CN-YunjianNeural"
+        }
+        selected_voice_label = st.selectbox("选择复述声线特质", list(voice_options.keys()))
+        voice = voice_options[selected_voice_label]
 
-    speed = st.sidebar.slider("语速精调 (0为标准语速)", min_value=-50, max_value=100, value=10, step=10)
-    speed_str = f"+{speed}%" if speed >= 0 else f"{speed}%"
+        speed = st.slider("语速精调 (0为标准语速)", min_value=-50, max_value=100, value=10, step=10)
+        speed_str = f"+{speed}%" if speed >= 0 else f"{speed}%"
 
-    # 循环机制
-    loop_mode = st.sidebar.radio("配置复述机制", ["定量（按遍数循环）", "定长（按时长磨耳朵）"])
-    loop_count = 1
-    duration_min = 0
-    
-    if loop_mode == "定量（按遍数循环）":
-        loop_count = st.sidebar.number_input("循环复述遍数", min_value=1, max_value=50, value=3)
-    else:
-        time_options = {"5分钟": 5, "10分钟": 10, "15分钟": 15, "30分钟": 30, "45分钟": 45, "1小时": 60}
-        selected_time = st.sidebar.selectbox("选择磨耳朵持续时间", list(time_options.keys()))
-        duration_min = time_options[selected_time]
+        st.write("---")
+        st.markdown("#### ⏳ 循环记忆机制")
+        loop_mode = st.radio("配置复述机制", ["定量（按遍数循环）", "定长（按时长磨耳朵）"])
+        loop_count = 1
+        duration_min = 0
+        
+        if loop_mode == "定量（按遍数循环）":
+            loop_count = st.number_input("循环复述遍数", min_value=1, max_value=50, value=3)
+        else:
+            time_options = {"5分钟": 5, "10分钟": 10, "15分钟": 15, "30分钟": 30, "45分钟": 45, "1小时": 60}
+            selected_time = st.selectbox("选择磨耳朵持续时间", list(time_options.keys()))
+            duration_min = time_options[selected_time]
 
-    # 输出检测模块
-    st.sidebar.write("---")
-    st.sidebar.markdown("### ❓ 主动回忆输出检测")
-    enable_quiz = st.sidebar.checkbox("开启复述后的随机效果抽查", value=True)
-    
-    quiz_mode = "交互式电子答题"
-    wait_time = 5
-    if enable_quiz:
-        quiz_mode = st.sidebar.radio("测试形式", ["📱 交互式电子答题", "🔊 语音播报问题"])
-        if quiz_mode == "🔊 语音播报问题":
-            wait_time = st.sidebar.slider("留给脑海中思索答案的时间 (秒)", min_value=5, max_value=15, value=10, step=5)
+        st.write("---")
+        st.markdown("#### ❓ 记忆输出抽查")
+        enable_quiz = st.checkbox("开启复述后的效果抽查", value=True)
+        
+        quiz_mode = "交互式电子答题"
+        wait_time = 5
+        if enable_quiz:
+            quiz_mode = st.radio("自测答题形式", ["📱 交互式电子答题", "🔊 语音播报问题"])
+            if quiz_mode == "🔊 语音播报问题":
+                wait_time = st.slider("留给脑海中思索答案的时间 (秒)", min_value=5, max_value=15, value=10, step=5)
 
     # 主界面输入区域卡片
     tab1, tab2 = st.tabs(["📝 纯文本录入", "📂 本地文档解析 (PDF/Word/TXT)"])
