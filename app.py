@@ -6,73 +6,7 @@ import random
 from pypdf import PdfReader
 from docx import Document
 
-# --- 1. 深度自定义 UI 样式注入 (致敬 Type Words 极简高雅风格) ---
-st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
-
-custom_css = """
-<style>
-    /* 整体渐变背景与现代字体 */
-    .stApp {
-        background: linear-gradient(135deg, #F4F7FB 0%, #E8EEF9 100%);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    
-    /* 隐藏Streamlit原生页眉页脚，增强产品一体感 */
-    header, footer {visibility: hidden;}
-    
-    /* 标题区域设计 */
-    .brand-title {
-        font-size: 3rem;
-        font-weight: 800;
-        background: linear-gradient(45deg, #7B2CBF, #3A86FF);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.05rem;
-    }
-    .brand-subtitle {
-        font-size: 1.1rem;
-        color: #6C757D;
-        text-align: center;
-        margin-bottom: 2.5rem;
-    }
-    
-    /* 精致白色卡片设计 */
-    .stTextArea textarea, .stFileUploader, div[data-testid="stForm"] {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-        border-radius: 16px !important;
-        border: 1px solid rgba(226, 232, 240, 0.8) !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03) !important;
-    }
-    
-    /* 侧边栏高级灰色调 */
-    section[data-testid="stSidebar"] {
-        background-color: #F8F9FA !important;
-        border-right: 1px solid #E9ECEF;
-    }
-    
-    /* 现代扁平化主按钮 */
-    .stButton>button {
-        background: linear-gradient(90deg, #3A86FF 0%, #4CC9F0 100%) !important;
-        color: white !important;
-        border: none !important;
-        padding: 0.6rem 2rem !important;
-        border-radius: 12px !important;
-        font-weight: 600 !important;
-        box-shadow: 0 4px 14px rgba(58, 134, 255, 0.3) !important;
-        transition: all 0.2s ease !important;
-        width: 100%;
-    }
-    .stButton>button:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 6px 20px rgba(58, 134, 255, 0.4) !important;
-    }
-</style>
-"""
-st.markdown(custom_css, unsafe_html=True)
-
-# --- 2. 通用文档解析器 ---
+# --- 1. 通用文档解析器 ---
 def extract_text_from_file(uploaded_file):
     file_extension = uploaded_file.name.split(".")[-1].lower()
     text = ""
@@ -88,7 +22,7 @@ def extract_text_from_file(uploaded_file):
         for para in doc.paragraphs: text += para.text + "\n"
     return text.strip()
 
-# --- 3. 严谨的记忆点抽取与挖空算法 ---
+# --- 2. 严谨的记忆点抽取与挖空算法 ---
 def generate_quiz_questions(text):
     if len(text) < 15:
         return []
@@ -119,21 +53,92 @@ def generate_quiz_questions(text):
         quizzes.append({"question": question, "answer": q_text})
     return quizzes
 
-# --- 4. 语音合成接口 ---
+# --- 3. 语音合成接口 ---
 async def amain(text, voice, rate, output_filename) -> None:
     communicate = edge_tts.Communicate(text, voice, rate=rate)
     await communicate.save(output_filename)
 
-# --- 5. 主界面逻辑 ---
+# --- 4. 主界面逻辑与高级 UI 注入 ---
 def main():
-    # 严谨、中性的标题设计
+    # 严格将初始化代码置于最前，避免 TypeError 冲突
+    st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
+
+    # 致敬 Type Words 风格的极简高级自定义 CSS
+    custom_css = """
+    <style>
+        /* 浅色多色调高雅渐变底色 */
+        .stApp {
+            background: linear-gradient(135deg, #F4F7FB 0%, #E8EEF9 100%) !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        /* 隐藏原生组件，增强封装感 */
+        header, footer {visibility: hidden;}
+        
+        /* 极简现代化大标题与副标题 */
+        .brand-title {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #7B2CBF, #3A86FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-top: 1rem;
+            margin-bottom: 0.2rem;
+            letter-spacing: -0.06rem;
+        }
+        .brand-subtitle {
+            font-size: 1.05rem;
+            color: #6C757D;
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        /* 具有呼吸感的白色圆角卡片化设计 */
+        .stTextArea textarea, .stFileUploader, div[data-testid="stForm"], .stTabs {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-radius: 16px !important;
+            border: 1px solid rgba(226, 232, 240, 0.8) !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02) !important;
+            padding: 10px !important;
+        }
+        
+        /* 侧边栏高级灰色调与边界线 */
+        section[data-testid="stSidebar"] {
+            background-color: #F8F9FA !important;
+            border-right: 1px solid #E9ECEF;
+        }
+        
+        /* 全宽、高质感扁平化渐变主按钮 */
+        .stButton>button {
+            background: linear-gradient(90deg, #3A86FF 0%, #4CC9F0 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 0.7rem 2rem !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            box-shadow: 0 4px 14px rgba(58, 134, 255, 0.25) !important;
+            transition: all 0.2s ease !important;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .stButton>button:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.35) !important;
+        }
+    </style>
+    """
+    st.markdown(custom_css, unsafe_html=True)
+
+    # 显示高端品牌标识与中性化严谨副标题
     st.markdown('<div class="brand-title">EchoMind</div>', unsafe_html=True)
     st.markdown('<div class="brand-subtitle">面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具</div>', unsafe_html=True)
 
     # 侧边栏：参数科学配置
     st.sidebar.markdown("### 🎛️ 语音与时间管理")
     
-    # 严谨的音色归类，彻底去除地域标签，按标准声线和使用场景严谨划分
+    # 彻底去除具体地域标签，按声线场景严谨划分
     voice_options = {
         "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
         "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
@@ -150,7 +155,7 @@ def main():
     speed = st.sidebar.slider("语速精调 (0为标准语速)", min_value=-50, max_value=100, value=10, step=10)
     speed_str = f"+{speed}%" if speed >= 0 else f"{speed}%"
 
-    # 科学记忆周期/循环机制
+    # 循环机制配置
     loop_mode = st.sidebar.radio("配置复述机制", ["定量（按遍数循环）", "定长（按时长磨耳朵）"])
     loop_count = 1
     duration_min = 0
@@ -162,7 +167,7 @@ def main():
         selected_time = st.sidebar.selectbox("选择磨耳朵持续时间", list(time_options.keys()))
         duration_min = time_options[selected_time]
 
-    # 深度闭环自测模块
+    # 输出检测模块配置
     st.sidebar.write("---")
     st.sidebar.markdown("### ❓ 主动回忆输出检测")
     enable_quiz = st.sidebar.checkbox("开启复述后的随机效果抽查", value=True)
@@ -174,7 +179,7 @@ def main():
         if quiz_mode == "🔊 语音播报问题":
             wait_time = st.sidebar.slider("留给脑海中思索答案的时间 (秒)", min_value=5, max_value=15, value=10, step=5)
 
-    # 主界面输入卡片
+    # 主界面输入区域卡片
     tab1, tab2 = st.tabs(["📝 纯文本录入", "📂 本地文档解析 (PDF/Word/TXT)"])
     input_text = ""
 
@@ -188,14 +193,14 @@ def main():
                 input_text = extract_text_from_file(uploaded_file)
             st.success("文档内容解析成功！")
 
-    # 执行音频与试题合成
+    # 执行合成
     if st.button("🚀 编译并生成复述记忆系统"):
         if not input_text.strip():
             st.warning("⚠️ 请先录入需要复述的文本内容！")
             return
 
         with st.spinner("系统正在为您构建复述音频与记忆盲盒..."):
-            # 组织最终播放文本
+            # 组织文本
             final_text = ""
             if loop_mode == "定量（按遍数循环）":
                 for i in range(loop_count):
@@ -207,7 +212,7 @@ def main():
                 for i in range(repeats):
                     final_text += f"第{i+1}轮循环。 {input_text} \n\n "
 
-            # 融合智能出题逻辑
+            # 智能挖空逻辑接入
             quiz_data = []
             if enable_quiz:
                 quiz_data = generate_quiz_questions(input_text)
@@ -219,18 +224,15 @@ def main():
                         final_text += f" 思考时间结束。参考原文为：{q['answer']} 。 "
                     final_text += " 深度自测结束，祝您早日完成记忆目标！"
 
-            # 异步合成写入
+            # 异步写入独立存储区
             output_filename = "professional_recitation.mp3"
             asyncio.run(amain(final_text, voice, speed_str, output_filename))
 
-            # 缓存数据
             st.session_state['quiz_data'] = quiz_data
             st.session_state['quiz_mode'] = quiz_mode
             st.session_state['enable_quiz'] = enable_quiz
 
         st.success("🎉 复述系统编译完成！")
-        
-        # 音频播放器区域
         st.audio(output_filename, format="audio/mpeg")
         st.download_button(label="📥 导出独立音频文件 (MP3)", data=open(output_filename, "rb").read(), file_name="EchoMind_Audio.mp3")
 
