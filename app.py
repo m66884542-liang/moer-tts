@@ -58,17 +58,16 @@ async def amain(text, voice, rate, output_filename) -> None:
     communicate = edge_tts.Communicate(text, voice, rate=rate)
     await communicate.save(output_filename)
 
-# --- 4. 核心：高级仿 Type Words 弹窗设置面板 ---
+# --- 4. 仿 Type Words 两栏分类设置面板（严格控制 4:3 比例） ---
 @st.dialog("系统设置", width="large")
 def show_settings_dialog():
-    st.caption("自定义调配您的复述声线、循环机制与自测盲盒")
     st.write("---")
     
-    # 采用 1:2 两栏布局，完美复刻 Type Words 的设置逻辑
+    # 采用 1:2.2 两栏布局，复刻 Type Words 的左菜单右配置逻辑
     left_menu, right_content = st.columns([1, 2.2], gap="large")
     
     with left_menu:
-        # 左侧垂直分类导航（隐藏原生边框，做成纯文本菜单感）
+        # 左侧垂直分类导航
         setting_tab = st.radio(
             "配置分类",
             ["🔊 语音特质调校", "⏳ 循环记忆机制", "❓ 记忆输出抽查"],
@@ -137,10 +136,13 @@ def main():
     if 'enable_quiz' not in st.session_state: st.session_state['enable_quiz'] = True
     if 'quiz_mode' not in st.session_state: st.session_state['quiz_mode'] = "📱 交互式电子答题"
 
-    # 注入全局 CSS 样式（隐藏拉伸手柄、精致化顶部布局）
+    # 🎯 全局高级 CSS 注入：控制 4:3 弹窗比例与细节去噪
     st.html("""
     <style>
+        /* 1. 隐藏多行输入框右下角引起不适的拖拽手柄 */
         .stTextArea textarea { resize: none !important; }
+        
+        /* 2. 完美的蓝粉渐变标题样式（Georgia斜体衬线感） */
         .gradient-brand-title {
             font-size: 3.5rem; font-weight: bold; font-family: 'Georgia', serif; font-style: italic;
             letter-spacing: -0.05rem; text-align: center; margin-top: 1rem; margin-bottom: 0.1rem;
@@ -149,25 +151,39 @@ def main():
         }
         .brand-subtitle-text { font-size: 0.95rem; color: #64748B; text-align: center; margin-bottom: 1.5rem; }
         
-        /* 仿 Type Words 左侧菜单高亮样式微调 */
-        div[data-testid="stRadio"] iframe { display: none; }
+        /* 3. 🎯 核心：精确定制 Streamlit 弹窗容器为 4:3 的黄金比例 */
+        div[role="dialog"] {
+            width: 760px !important;  /* 固定理想宽度 */
+            max-width: 90vw !important;
+            height: 570px !important; /* 760 * 3 / 4 = 570 达成严格 4:3 */
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+            border-radius: 16px !important;
+        }
+        
+        /* 让侧边栏按钮形态更和谐 */
+        div[data-testid="stSidebar"] button {
+            width: 100% !important;
+            border-radius: 10px !important;
+        }
     </style>
     """)
 
-    # 顶部工具栏：左侧是渐变 Logo，右侧是极简设置按钮
-    header_col, btn_col = st.columns([5, 1])
-    with header_col:
-        st.html('<div class="gradient-brand-title">EchoMind</div>')
-    with btn_col:
-        st.write("") # 错位对齐
-        st.write("") 
-        if st.button("⚙️ 设置", help="点击打开 Type Words 风格设置面板"):
-            show_settings_dialog()
+    # ================= ⚡ 侧边栏按钮收纳整理区域 ⚡ =================
+    st.sidebar.markdown("### ⚙️ 控制中心")
+    st.sidebar.caption("在这里管理您的全局配置")
+    st.sidebar.write("") # 留白空间
+    
+    # 将设置开关精准移至左侧边框
+    if st.sidebar.button("⚙️ 打开系统设置"):
+        show_settings_dialog()
 
+    # 主界面页头与渐变字展示
+    st.html('<div class="gradient-brand-title">EchoMind</div>')
     st.html('<div class="brand-subtitle-text">面向深度记忆、学术背诵与文本复述的科学自测工具</div>')
 
     # 当前配置微型状态提示条
-    st.caption(f"当前配置：{st.session_state['voice_label']} | {st.session_state['loop_mode']} | 效果抽查: {'开启' if st.session_state['enable_quiz'] else '关闭'}")
+    st.caption(f"🔧 运行时配置：{st.session_state['voice_label']} | {st.session_state['loop_mode']} | 效果抽查: {'开启' if st.session_state['enable_quiz'] else '关闭'}")
 
     # 主界面输入区域
     tab1, tab2 = st.tabs(["📝 纯文本录入", "📂 本地文档解析 (PDF/Word/TXT)"])
