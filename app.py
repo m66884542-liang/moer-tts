@@ -60,28 +60,26 @@ async def amain(text, voice, rate, output_filename) -> None:
 
 # --- 4. 主界面逻辑与高级 UI 注入 ---
 def main():
-    # 严格将初始化代码置于最前，避免 TypeError 冲突
+    # 必须首先执行页面配置
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 致敬 Type Words 风格的极简高级自定义 CSS
+    # 针对 Python 3.14 优化后的安全 CSS 样式 (移除了可能引发格式化冲突的百分比符号)
     custom_css = """
     <style>
-        /* 浅色多色调高雅渐变底色 */
+        /* 致敬 Type Words 的清爽极简底色 */
         .stApp {
-            background: linear-gradient(135deg, #F4F7FB 0%, #E8EEF9 100%) !important;
+            background-color: #EBF1FA !important;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         
-        /* 隐藏原生组件，增强封装感 */
+        /* 隐藏无用页眉页脚 */
         header, footer {visibility: hidden;}
         
-        /* 极简现代化大标题与副标题 */
+        /* 扁平化极简大标题与副标题 */
         .brand-title {
             font-size: 3.2rem;
             font-weight: 800;
-            background: linear-gradient(45deg, #7B2CBF, #3A86FF);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #4A148C;
             text-align: center;
             margin-top: 1rem;
             margin-bottom: 0.2rem;
@@ -89,56 +87,57 @@ def main():
         }
         .brand-subtitle {
             font-size: 1.05rem;
-            color: #6C757D;
+            color: #5C6BC0;
             text-align: center;
             margin-bottom: 2.5rem;
         }
         
-        /* 具有呼吸感的白色圆角卡片化设计 */
+        /* 极具呼吸感的纯白圆角卡片化设计 */
         .stTextArea textarea, .stFileUploader, div[data-testid="stForm"], .stTabs {
-            background-color: rgba(255, 255, 255, 0.95) !important;
+            background-color: #FFFFFF !important;
             border-radius: 16px !important;
-            border: 1px solid rgba(226, 232, 240, 0.8) !important;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02) !important;
-            padding: 10px !important;
+            border: 1px solid #E0E0E0 !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
         }
         
-        /* 侧边栏高级灰色调与边界线 */
+        /* 侧边栏高级灰色调平衡 */
         section[data-testid="stSidebar"] {
-            background-color: #F8F9FA !important;
-            border-right: 1px solid #E9ECEF;
+            background-color: #F5F7F8 !important;
+            border-right: 1px solid #E0E0E0;
         }
         
-        /* 全宽、高质感扁平化渐变主按钮 */
+        /* 全宽纯色扁平化高质感主按钮 */
         .stButton>button {
-            background: linear-gradient(90deg, #3A86FF 0%, #4CC9F0 100%) !important;
+            background-color: #3A86FF !important;
             color: white !important;
             border: none !important;
             padding: 0.7rem 2rem !important;
             border-radius: 12px !important;
             font-weight: 600 !important;
             font-size: 1rem !important;
-            box-shadow: 0 4px 14px rgba(58, 134, 255, 0.25) !important;
+            box-shadow: 0 4px 12px rgba(58, 134, 255, 0.2) !important;
             transition: all 0.2s ease !important;
             width: 100%;
             margin-top: 1rem;
         }
         .stButton>button:hover {
+            background-color: #2563EB !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 6px 20px rgba(58, 134, 255, 0.35) !important;
+            box-shadow: 0 6px 16px rgba(58, 134, 255, 0.3) !important;
         }
     </style>
     """
+    # 采用安全模式渲染 CSS 样式
     st.markdown(custom_css, unsafe_html=True)
 
-    # 显示高端品牌标识与中性化严谨副标题
+    # 显示品牌标识与中性化严谨副标题
     st.markdown('<div class="brand-title">EchoMind</div>', unsafe_html=True)
     st.markdown('<div class="brand-subtitle">面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具</div>', unsafe_html=True)
 
     # 侧边栏：参数科学配置
     st.sidebar.markdown("### 🎛️ 语音与时间管理")
     
-    # 彻底去除具体地域标签，按声线场景严谨划分
+    # 严谨划分声线场景，不带具体地域标签
     voice_options = {
         "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
         "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
@@ -206,6 +205,7 @@ def main():
                 for i in range(loop_count):
                     final_text += f"第{i+1}遍。 {input_text} \n\n "
             else:
+                # 按照1分钟约280字粗略估算
                 estimated_words_needed = duration_min * 280
                 current_words = len(input_text)
                 repeats = max(1, estimated_words_needed // current_words)
@@ -233,6 +233,8 @@ def main():
             st.session_state['enable_quiz'] = enable_quiz
 
         st.success("🎉 复述系统编译完成！")
+        
+        # 优化音频组件展现形式
         st.audio(output_filename, format="audio/mpeg")
         st.download_button(label="📥 导出独立音频文件 (MP3)", data=open(output_filename, "rb").read(), file_name="EchoMind_Audio.mp3")
 
