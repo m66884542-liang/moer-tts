@@ -58,19 +58,66 @@ async def amain(text, voice, rate, output_filename) -> None:
     communicate = edge_tts.Communicate(text, voice, rate=rate)
     await communicate.save(output_filename)
 
-# --- 4. 主界面逻辑（完全还原原生 UI） ---
+# --- 4. 主界面逻辑（原生基础 + 蓝粉高级渐变特效） ---
 def main():
-    # 首行页面基础配置
+    # 首行页面基础配置（移除了原本的大脑图标标题）
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 100% 还原官方原生标题组件，去除所有外部 CSS 渲染干扰
-    st.title("🧠 EchoMind")
-    st.caption("面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具")
+    # 🎯 核心样式注入：注入完美的 Type Words 风格蓝粉渐变字，并安全保护页面不白屏
+    ui_style_and_logo = """
+    <style>
+        /* 1. 彻底隐藏多行输入框右下角引起不适的 “3条杠” 拖拽手柄 */
+        .stTextArea textarea {
+            resize: none !important;
+        }
+        
+        /* 2. 完美的蓝粉双色渐变主标题样式（Georgia衬线体质感，无任何多余图标） */
+        .gradient-brand-title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            letter-spacing: -0.05rem;
+            text-align: center;
+            margin-top: 1.5rem;
+            margin-bottom: 0.1rem;
+            
+            /* 渐变色核心技术 */
+            background: linear-gradient(135deg, #0288D1 20%, #F06292 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* 副标题精致细节 */
+        .brand-subtitle-text {
+            font-size: 0.95rem;
+            color: #64748B;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        /* 3. 顺应蓝粉色调微调 Tab 激活状态下的下划线与文字颜色 */
+        button[data-baseweb="tab"] {
+            color: #475569 !important;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            color: #0288D1 !important;
+            border-bottom-color: #F06292 !important;
+        }
+    </style>
+    
+    <div class="gradient-brand-title">EchoMind</div>
+    <div class="brand-subtitle-text">面向深度记忆、学术背诵与文本复述的科学自测工具</div>
+    """
+    
+    # 用最稳健的官方函数将精美字形注入页头
+    st.html(ui_style_and_logo)
 
     # ================= ⚙️ 侧边栏功能极致收纳 =================
     st.sidebar.title("⚙️ 控制中心")
     
-    # 将零散配置完美收纳进单个折叠模块，保持侧边栏原生清爽
+    # 保持最干净、还原原生的折叠式配置
     with st.sidebar.expander("🛠️ 展开/收起 高级参数配置", expanded=False):
         st.subheader("🔊 语音特质调校")
         voice_options = {
