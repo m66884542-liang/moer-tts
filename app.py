@@ -63,8 +63,8 @@ def main():
     # 严格将配置作为首行执行
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 针对 Python 3.14 优化后的安全 CSS 样式 (使用官方推荐的 st.html 接口，避免语法误判)
-    custom_style = """
+    # 将自定义样式和品牌标题打包，统一使用官方专用的 st.html() 静态注入，彻底避开 st.markdown 的解析漏洞
+    ui_and_header_html = """
     <style>
         /* 致敬 Type Words 的清爽极简底色 */
         .stApp {
@@ -72,7 +72,7 @@ def main():
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         
-        /* 隐藏Streamlit官方页眉与页脚以提升高级感 */
+        /* 隐藏Streamlit官方页眉与页脚 */
         header, footer {visibility: hidden;}
         
         /* 扁平化极简大标题与副标题设计 */
@@ -126,16 +126,16 @@ def main():
             box-shadow: 0 6px 16px rgba(58, 134, 255, 0.3) !important;
         }
     </style>
+    
+    <div class="brand-title">EchoMind</div>
+    <div class="brand-subtitle">面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具</div>
     """
-    # 改用极速安全的官方专属原生 HTML 解析器，彻底根除报错
-    st.html(custom_style)
-
-    # 显示品牌标识与中性化严谨副标题
-    st.markdown('<div class="brand-title">EchoMind</div>', unsafe_html=True)
-    st.markdown('<div class="brand-subtitle">面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具</div>', unsafe_html=True)
+    
+    # 纯静态一次性注入核心UI组件与顶部品牌区域
+    st.html(ui_and_header_html)
 
     # 侧边栏：参数科学配置
-    st.sidebar.markdown("### 🎛️ 语音与时间 management")
+    st.sidebar.markdown("### 🎛️ 语音与时间管理")
     
     # 严格划分声线场景
     voice_options = {
@@ -227,33 +227,4 @@ def main():
             output_filename = "professional_recitation.mp3"
             asyncio.run(amain(final_text, voice, speed_str, output_filename))
 
-            st.session_state['quiz_data'] = quiz_data
-            st.session_state['quiz_mode'] = quiz_mode
-            st.session_state['enable_quiz'] = enable_quiz
-
-        st.success("🎉 复述系统编译完成！")
-        st.audio(output_filename, format="audio/mpeg")
-        st.download_button(label="📥 导出独立音频文件 (MP3)", data=open(output_filename, "rb").read(), file_name="EchoMind_Audio.mp3")
-
-        # 闭环测试面板展示
-        if enable_quiz and quiz_data:
-            st.write("---")
-            st.markdown("### 📝 记忆效果深度自测面板")
-            st.caption("建议听完上方音频后回到此处作答，通过“检索输出”强化大脑神经元连接。")
-            
-            for idx, q in enumerate(quiz_data):
-                st.markdown(f"**📍 随机盲查第 {idx+1} 题：**")
-                st.code(q['question'])
-                
-                if quiz_mode == "📱 交互式电子答题":
-                    st.text_input(f"请输入您记忆中缺失的核心词或原句 (第{idx+1}题)", key=f"user_ans_{idx}")
-                    with st.expander("🔍 核对标准参考原句"):
-                        st.success(q['answer'])
-                else:
-                    st.caption("提示：本题已包含在复述音频的末尾，您可在盲听时同步思考。")
-                    with st.expander("🔍 查看文字版题目与标准答案对照"):
-                        st.write(f"问题句：{q['question']}")
-                        st.success(f"参考句：{q['answer']}")
-
-if __name__ == "__main__":
-    main()
+            st.session_state
