@@ -60,28 +60,25 @@ async def amain(text, voice, rate, output_filename) -> None:
 
 # --- 4. 主界面逻辑与高级 UI 注入 ---
 def main():
-    # 严格将配置作为首行执行
+    # 严格作为首行执行页面配置
     st.set_page_config(page_title="EchoMind | 智能复述与记忆自测系统", page_icon="🧠", layout="centered")
 
-    # 将自定义样式和品牌标题打包，统一使用官方专用的 st.html() 静态注入，彻底避开 st.markdown 的解析漏洞
+    # 修复白屏隐患的高级 UI 样式
     ui_and_header_html = """
     <style>
-        /* 致敬 Type Words 的清爽极简底色 */
+        /* Type Words 高雅冷调浅色背景 */
         .stApp {
-            background-color: #EBF1FA !important;
+            background-color: #F3F6FA !important;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         
-        /* 隐藏Streamlit官方页眉与页脚 */
-        header, footer {visibility: hidden;}
-        
-        /* 扁平化极简大标题与副标题设计 */
+        /* 极简现代化大标题与副标题 */
         .brand-title {
             font-size: 3.2rem;
             font-weight: 800;
             color: #4A148C;
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             margin-bottom: 0.2rem;
             letter-spacing: -0.06rem;
         }
@@ -92,21 +89,21 @@ def main():
             margin-bottom: 2.5rem;
         }
         
-        /* 具有呼吸感的纯白圆角卡片化设计 */
+        /* 纯白质感圆角卡片组件 */
         .stTextArea textarea, .stFileUploader, div[data-testid="stForm"], .stTabs {
             background-color: #FFFFFF !important;
             border-radius: 16px !important;
-            border: 1px solid #E0E0E0 !important;
+            border: 1px solid #E2E8F0 !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
         }
         
-        /* 侧边栏高级灰色调平衡 */
+        /* 侧边栏高级灰 */
         section[data-testid="stSidebar"] {
-            background-color: #F5F7F8 !important;
-            border-right: 1px solid #E0E0E0;
+            background-color: #F8FAFC !important;
+            border-right: 1px solid #E2E8F0;
         }
         
-        /* 全宽纯色扁平化高质感主按钮 */
+        /* 全宽质感主按钮 */
         .stButton>button {
             background-color: #3A86FF !important;
             color: white !important;
@@ -123,21 +120,19 @@ def main():
         .stButton>button:hover {
             background-color: #2563EB !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 6px 16px rgba(58, 134, 255, 0.3) !important;
         }
     </style>
     
     <div class="brand-title">EchoMind</div>
-    <div class="brand-subtitle">面向深度记忆、学术背诵、职场考证与文本复述的科学自测工具</div>
+    <div class="brand-subtitle">面向深度记忆、学术背诵与文本复述的科学自测工具</div>
     """
     
-    # 纯静态一次性注入核心UI组件与顶部品牌区域
+    # 安全注入纯静态样式与标题
     st.html(ui_and_header_html)
 
-    # 侧边栏：参数科学配置
+    # 侧边栏：参数配置
     st.sidebar.markdown("### 🎛️ 语音与时间管理")
     
-    # 严格划分声线场景
     voice_options = {
         "标准清晰 · 叙事女声 (晓晓)": "zh-CN-XiaoxiaoNeural",
         "沉稳理性 · 教学男声 (云希)": "zh-CN-YunxiNeural",
@@ -154,7 +149,7 @@ def main():
     speed = st.sidebar.slider("语速精调 (0为标准语速)", min_value=-50, max_value=100, value=10, step=10)
     speed_str = f"+{speed}%" if speed >= 0 else f"{speed}%"
 
-    # 循环机制配置
+    # 循环机制
     loop_mode = st.sidebar.radio("配置复述机制", ["定量（按遍数循环）", "定长（按时长磨耳朵）"])
     loop_count = 1
     duration_min = 0
@@ -166,7 +161,7 @@ def main():
         selected_time = st.sidebar.selectbox("选择磨耳朵持续时间", list(time_options.keys()))
         duration_min = time_options[selected_time]
 
-    # 输出检测模块配置
+    # 输出检测模块
     st.sidebar.write("---")
     st.sidebar.markdown("### ❓ 主动回忆输出检测")
     enable_quiz = st.sidebar.checkbox("开启复述后的随机效果抽查", value=True)
@@ -227,4 +222,33 @@ def main():
             output_filename = "professional_recitation.mp3"
             asyncio.run(amain(final_text, voice, speed_str, output_filename))
 
-            st.session_state
+            st.session_state['quiz_data'] = quiz_data
+            st.session_state['quiz_mode'] = quiz_mode
+            st.session_state['enable_quiz'] = enable_quiz
+
+        st.success("🎉 复述系统编译完成！")
+        st.audio(output_filename, format="audio/mpeg")
+        st.download_button(label="📥 导出独立音频文件 (MP3)", data=open(output_filename, "rb").read(), file_name="EchoMind_Audio.mp3")
+
+        # 闭环测试面板展示
+        if enable_quiz and quiz_data:
+            st.write("---")
+            st.markdown("### 📝 记忆效果深度自测面板")
+            st.caption("建议听完上方音频后回到此处作答，通过“检索输出”强化大脑神经元连接。")
+            
+            for idx, q in enumerate(quiz_data):
+                st.write(f"**📍 随机盲查第 {idx+1} 题：**")
+                st.code(q['question'])
+                
+                if quiz_mode == "📱 交互式电子答题":
+                    st.text_input(f"请输入您记忆中缺失的核心词或原句 (第{idx+1}题)", key=f"user_ans_{idx}")
+                    with st.expander("🔍 核对标准参考原句"):
+                        st.success(q['answer'])
+                else:
+                    st.caption("提示：本题已包含在复述音频的末尾，您可在盲听时同步思考。")
+                    with st.expander("🔍 查看文字版题目与标准答案对照"):
+                        st.write(f"问题句：{q['question']}")
+                        st.success(f"参考句：{q['answer']}")
+
+if __name__ == "__main__":
+    main()
